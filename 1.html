@@ -5,222 +5,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
-  <style>
-    .continer {
-      width: 700px;
-      height: 700px;
-      border: 1px solid green;
-      box-sizing: content-box;
-    }
-    .btn {
-      display: inline-block;
-    }
-  </style>
-  <script src="./js/three-latest.js"></script>
-  <script src="./js/OrbitControls.js"></script>
+  <link rel="stylesheet" href="./css/1.css">
+  <script src="./js/lib/three-latest.js"></script>
+  <script src="./js/lib/OrbitControls.js"></script>
 </head>
 
 <body>
-  <div class="continer" id="WebGL-output"></div>
-  <button class="btn" onclick="addPlane()">Add Plane</button>
-  <script>
-    const containerId = 'WebGL-output'
-    const containerEl = document.getElementById(containerId);
-    const containerW = containerEl.clientWidth;
-    const containerH = containerEl.clientHeight;
-    var renderer = null;
-    var scene = null;
-    var camera = null;
-    var clickObjects = [];
-    var controls = null;
-
-    function getCube(x, y, z, type) {
-      // create a cube
-      var cubeGeometry = new THREE.BoxGeometry(x, y, z);
-      var cubeMaterial = new THREE.MeshBasicMaterial({
-        color: 0xff0000,
-        wireframe: true
-      });
-      var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-      cube.type = name;
-      cube.position.x = 0;
-      cube.position.y = 0;
-      cube.position.z = 0;
-      return cube;
-    }
-
-    function getSphere(type) {
-      // create a sphere
-      var sphereGeometry = new THREE.SphereGeometry(4, 20, 20);
-      var sphereMaterial = new THREE.MeshBasicMaterial({
-        color: 0x7777ff,
-        wireframe: true
-      });
-      var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-      sphere.type = type;
-      sphere.position.x = 10;
-      sphere.position.y = 0;
-      sphere.position.z = 0;
-      return sphere;
-    }
-
-    function getCubeWithImg() {
-      var geometry = new THREE.BoxGeometry(5, 3, 3);
-
-      let textureLoader = new THREE.TextureLoader();
-      let cube = new THREE.Mesh(
-        geometry,
-        [
-          //下标0：右面材质
-          new THREE.MeshBasicMaterial({
-            color: 0xff0000
-          }),
-          //下标1：左面材质
-          new THREE.MeshBasicMaterial({
-            color: 0x00ffff
-          }),
-          //下标2：上面材质
-          new THREE.MeshBasicMaterial({
-            color: 0x00ff00
-          }),
-          //下标3：下面材质
-          new THREE.MeshBasicMaterial({
-            color: 0xffffff
-          }),
-          //下标4：前面材质
-          new THREE.MeshBasicMaterial({
-            map: textureLoader.load('img/arrow.png', function () { render() })
-          }),
-          //下标5：后面材质
-          new THREE.MeshBasicMaterial({
-            color: 0xffffff
-          }),
-        ]
-      );
-      return cube;
-    }
-
-    function getPlane(w, h, type) {
-      var planeGeometry = new THREE.PlaneGeometry(w, h);
-      var planeMaterial = new THREE.MeshBasicMaterial({
-        color: 0xcccccc
-      });
-      var plane = new THREE.Mesh(planeGeometry, planeMaterial);
-      plane.type = type;
-      plane.name = 'plane0'
-      plane.rotation.x = 0 * Math.PI;
-      // plane.rotation.y = 0.2 * Math.PI;
-      plane.position.x = 0;
-      plane.position.y = 0;
-      plane.position.z = 0;
-      return plane;
-    }
-
-    function init() {
-      // create a scene, that will hold all our elements such as objects, cameras and lights.
-      scene = new THREE.Scene();
-
-      // create a camera, which defines where we're looking at.
-      camera = new THREE.PerspectiveCamera(45, containerW / containerH, 0.1, 1000);
-
-      // create a render and set the size
-      renderer = new THREE.WebGLRenderer();
-      renderer.setClearColor(new THREE.Color(0xEEEEEE));
-      renderer.setSize(containerW, containerH);
-
-      var point = new THREE.PointLight(0xffffff);
-      point.position.set(0, 0, 300); //点光源位置
-      scene.add(point); //点光源添加到场景中
-
-      // show axes in the screen
-      var axes = new THREE.AxesHelper(50);
-      scene.add(axes);
-
-      var textureLoader = new THREE.TextureLoader();
-      // 执行load方法，加载纹理贴图成功后，返回一个纹理对象Texture
-      textureLoader.load('img/rgb.png', function (texture) {
-        var material = new THREE.MeshLambertMaterial({
-          map: texture, //设置颜色贴图属性值
-        });
-        var plane = getPlane(25, 7, 'plane');
-
-        plane.material.map = texture;
-
-        // 必须在改变纹理后添加子节点，不然显示不出来
-        var cube = getCube(3, 3, 3);
-        var sphere = getSphere();
-        plane.add(cube);
-        // plane.add(sphere);
-        var cubeWithImg = getCubeWithImg();
-        cubeWithImg.position.x = 7;
-        plane.add(cubeWithImg);
-        scene.add(plane);
-
-        //纹理贴图加载成功后，调用渲染函数执行渲染操作
-        render();
-      })
-
-      // position and point the camera to the center of the scene
-      camera.position.x = 0;
-      camera.position.y = 0;
-      camera.position.z = 50;
-      camera.lookAt(scene.position);
-
-      // add the output of the renderer to the html element
-      containerEl.appendChild(renderer.domElement);
-
-      controls = new THREE.OrbitControls(camera, renderer.domElement); //创建控件对象
-      controls.addEventListener('change', render); //监听鼠标、键盘事件
-      initThreeClickEvent();
-    }
-
-    function addPlane() {
-      var plane = scene.getObjectByName('plane0');
-      var plane1 = plane.clone();
-      plane1.rotation.z = 0.5 * Math.PI;
-      plane1.position.y = 10;
-      scene.add(plane1);
-      render();
-    }
-
-    function initThreeClickEvent() {
-      //点击射线
-      var raycaster = new THREE.Raycaster();
-      var mouse = new THREE.Vector2();
-      containerEl.addEventListener('click', onDocumentMouseClick, false);
-
-      function onDocumentMouseClick(event) {
-        event.preventDefault();
-        mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
-        mouse.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
-
-        raycaster.setFromCamera(mouse, camera);
-
-        //总结一下，这里必须装网格，mesh，装入组是没有效果的
-        //所以我们将所有的盒子的网格放入对象就可以了
-        // 需要被监听的对象要存储在clickObjects中。
-        scene.traverse(function(obj) {
-          if (obj.type === "Mesh") {
-            clickObjects.push(obj);
-          }
-        })
-        var intersects = raycaster.intersectObjects(clickObjects);
-        if (intersects.length > 0) {
-          // 在这里填写点击代码
-          console.log("click ", intersects[0].object.name);
-          console.log(intersects[0].object)
-        }
-      }
-    }
-
-
-    window.onload = init();
-
-    function render(e) {
-      // console.log(3, e)
-      renderer.render(scene, camera); //执行渲染操作
-    }
-  </script>
+  <div class="row">
+    <div class="col-1">
+      <h3>操作区</h3>
+      <button class="btn" onclick="addPlane()">Add Plane</button>
+      <button onclick="disposeAll()">dispose</button>
+      <button onclick="clearRenderer()">clearRenderer</button>
+    </div>
+    <div class="col-2">
+      <div class="continer" id="WebGL-output"></div>
+    </div>
+  </div>
+  <script src="./js/1.js"></script>
 </body>
 
 </html>
